@@ -28,18 +28,23 @@ def build_prompt(command: str, data: dict) -> str:
     return instruction + "\n입력 자료 JSON:\n" + json.dumps(data, ensure_ascii=False)
 
 
-def generate(prompt: str, api_key: str, model: str, temperature: float,
-             max_tokens: int, timeout: float) -> dict:
-    """HTTP POST 1회를 보내 AI가 만든 JSON 객체를 반환한다."""
-    url = "https://generativelanguage.googleapis.com/v1beta/models/"
-    url += quote(model, safe="") + ":generateContent"
-    payload = {
+def build_payload(prompt: str, temperature: float, max_tokens: int) -> dict:
+    """실제 요청과 dry-run에서 같은 REST JSON 구조를 사용한다. 키는 제외한다."""
+    return {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {
             "temperature": temperature, "maxOutputTokens": max_tokens,
             "responseMimeType": "application/json",
         },
     }
+
+
+def generate(prompt: str, api_key: str, model: str, temperature: float,
+             max_tokens: int, timeout: float) -> dict:
+    """HTTP POST 1회를 보내 AI가 만든 JSON 객체를 반환한다."""
+    url = "https://generativelanguage.googleapis.com/v1beta/models/"
+    url += quote(model, safe="") + ":generateContent"
+    payload = build_payload(prompt, temperature, max_tokens)
     request = urllib.request.Request(
         url, data=json.dumps(payload).encode("utf-8"), method="POST",
         headers={"Content-Type": "application/json", "x-goog-api-key": api_key},

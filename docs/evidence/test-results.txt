@@ -1,0 +1,24 @@
+Command: python -m unittest discover -s tests -v
+Environment: Windows / Python 3.14.4
+Exit code: 0
+
+test_bad_json (test_modules.ApiTests.test_bad_json) ... ok
+test_http_key_is_masked (test_modules.ApiTests.test_http_key_is_masked) ... ok
+test_network_failure (test_modules.ApiTests.test_network_failure) ... ok
+test_request_options_and_single_call (test_modules.ApiTests.test_request_options_and_single_call) ... ok
+test_truncated_response_is_not_a_draft_or_retried (test_modules.ApiTests.test_truncated_response_is_not_a_draft_or_retried) ... ok
+test_dry_run_shows_options_without_request (test_modules.FormatAndCliTests.test_dry_run_shows_options_without_request) ... ok
+test_mask_before_input_truncation (test_modules.FormatAndCliTests.test_mask_before_input_truncation) ... ok
+test_missing_key_hint_and_zero_calls (test_modules.FormatAndCliTests.test_missing_key_hint_and_zero_calls) ... ok
+test_numeric_output_budget_is_preserved_but_secrets_are_masked (test_modules.FormatAndCliTests.test_numeric_output_budget_is_preserved_but_secrets_are_masked) ... ok
+test_pr_missing_sections_have_field_guidance (test_modules.FormatAndCliTests.test_pr_missing_sections_have_field_guidance) ... ok
+test_title_limits_and_changes (test_modules.FormatAndCliTests.test_title_limits_and_changes) ... ok
+test_clean_unborn_and_cli (test_modules.GitTests.test_clean_unborn_and_cli) ... ok
+test_rename_with_spaces (test_modules.GitTests.test_rename_with_spaces) ... ok
+test_staged_and_unstaged_and_untracked (test_modules.GitTests.test_staged_and_unstaged_and_untracked) ... ok
+test_subdirectory_rejected (test_modules.GitTests.test_subdirectory_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 3.222s
+
+OK

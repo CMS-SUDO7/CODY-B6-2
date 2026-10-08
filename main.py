@@ -1,13 +1,14 @@
 """B6-2: Gemini로 Git 커밋 메시지와 PR 초안을 만드는 CLI."""
 
 import argparse
+import json
 import math
 import os
 import re
 import sys
 
-from gemini_api import build_prompt, generate
-from git_tools import collect_changes
+from gemini_api import build_payload, build_prompt, generate
+from git_tools import collect_changes, run_git
 from output_format import format_draft, one_line
 from safety import mask_sensitive, prepare_input
 
@@ -24,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--test", default="", help="실시한 검증과 결과. 생략하면 미실행으로 처리")
     parser.add_argument("--safe-mode", "-safe-mode", dest="safe_mode", action="store_true", default=True)
     parser.add_argument("--no-safe-mode", dest="safe_mode", action="store_false")
-    parser.add_argument("--dry-run", action="store_true", help="전송 내용만 확인. API 호출 0회")
+    parser.add_argument("--dry-run", action="store_true", help="전송 예정 프롬프트와 요청 JSON 확인. API 호출 0회")
     args = parser.parse_args()
     if not re.fullmatch(r"gemini-[A-Za-z0-9._-]+", args.model):
         parser.error("--model은 gemini-로 시작하는 모델 이름이어야 합니다.")
@@ -46,6 +47,9 @@ def main() -> int:
         status, diff, count, untracked = collect_changes()
         if count == 0:
             print("[INFO] 변경 사항이 없습니다.")
+            branch = run_git(["status", "--porcelain=v1", "--branch"]).splitlines()[0]
+            print("[INFO] " + mask_sensitive(branch.removeprefix("## "), api_key)
+                  + "; staged/unstaged/미추적 변경이 없는 상태입니다.")
             return 0
         print(f"[INFO] Git status 수집 완료: {count}개 항목 변경")
         print(f"[INFO] Git diff 수집 완료: {len(diff.splitlines())}줄 (구분 헤더 포함)")
@@ -57,16 +61,21 @@ def main() -> int:
         prompt = build_prompt(args.command, data)
         if args.dry_run:
             print("--- 전송 예정 프롬프트 (전송 안 함) ---\n" + prompt)
+            print("--- 전송 예정 요청 JSON (키 헤더 제외, 전송 안 함) ---\n"
+                  + json.dumps(build_payload(prompt, args.temperature, args.max_tokens),
+                               ensure_ascii=False, indent=2))
             return 0
         if not api_key:
-            raise ValueError("GEMINI_API_KEY 환경변수가 설정되지 않았습니다.")
-        print(f"[INFO] Gemini API 요청 중: {args.model}", flush=True)
+            raise ValueError("GEMINI_API_KEY 환경변수가 설정되지 않았습니다.\n"
+                             "[HINT] PowerShell 설정 예시: Set-Item Env:GEMINI_API_KEY \"발급받은_키\"")
+        print(f"[INFO] Gemini API 요청 중: {args.model} "
+              f"(temperature={args.temperature}, max_tokens={args.max_tokens})", flush=True)
         calls = 1
         draft = generate(prompt, api_key, args.model, args.temperature, args.max_tokens, args.timeout)
         draft["title"] = mask_sensitive(one_line(draft.get("title")), api_key)
         output, notices = format_draft(args.command, draft)
         for notice in notices:
-            print("[WARN] " + notice)
+            print("[WARN] " + mask_sensitive(notice, api_key))
         summary = one_line(draft.get("summary")) or "요약이 없습니다. 아래 초안과 diff를 확인해 주세요."
         print("--- 변경 요약 ---\n" + mask_sensitive(summary, api_key))
         label = "Commit Message" if args.command == "commit" else "PR Title / Body"

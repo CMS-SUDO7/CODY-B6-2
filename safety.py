@@ -16,9 +16,17 @@ def mask_sensitive(text: str, api_key: str = "") -> str:
     for pattern in patterns:
         text = re.sub(pattern, "[REDACTED]", text)
     # 키 이름은 남기고 같은 줄의 할당 값은 가린다.
+    def mask_assignment(match: re.Match) -> str:
+        # 출력 예산의 숫자는 인증 토큰이 아니다. 알려진 두 옵션만 숫자일 때 보존한다.
+        prefix, value = match.groups()
+        numeric_budget = re.search(r"(?i)\b(?:max_tokens|maxOutputTokens)[\"']?\s*[:=]\s*$", prefix)
+        if numeric_budget and re.fullmatch(r"\d+\s*[,)]?\s*", value):
+            return match.group(0)
+        return prefix + "[REDACTED]"
+
     text = re.sub(
-        r"(?im)((?:[A-Z_]*(?:API_KEY|TOKEN|SECRET|PASSWORD)[A-Z_]*)[\"']?\s*[:=]\s*)[^\r\n]+",
-        r"\1[REDACTED]", text,
+        r"(?im)((?:[A-Z_]*(?:API_KEY|TOKEN|SECRET|PASSWORD)[A-Z_]*)[\"']?\s*[:=]\s*)([^\r\n]+)",
+        mask_assignment, text,
     )
     text = re.sub(
         r"-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?(?:-----END [^-]*PRIVATE KEY-----|\Z)",

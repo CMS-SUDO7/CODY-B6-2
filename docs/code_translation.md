@@ -1,5 +1,7 @@
 # B6-2 코드 흐름과 줄별 해설
 
+2026-10-08 보완: `build_payload`로 요청 JSON을 분리했고 dry-run에도 같은 본문을 출력합니다. 키 누락·변경 없음·형식 보정 안내와 `safety.py`의 숫자 출력 예산 처리가 추가되었습니다. 아래 줄별 인용은 초기 구현을 설명하므로 현재 줄 번호·메시지와 다를 수 있습니다. 현재 동작과 검증은 [평가 보완 문서](evaluation.md)와 [유지보수 지침](maintenance.md)을 참고하세요.
+
 ## 1. 파일 역할과 시작점
 
 실행 시작점은 `main.py` 마지막의 `sys.exit(main())`입니다. `main()`은 `parse_args()`로 옵션을 읽고, `collect_changes()`로 저장소 자료를 모으고, `prepare_input()`으로 전송 자료를 다듬습니다. `build_prompt()` 다음 `generate()`를 한 번 호출하고 `format_draft()` 결과를 화면에 보여 줍니다.
