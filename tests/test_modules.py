@@ -108,6 +108,75 @@ class ApiTests(unittest.TestCase):
         self.assertIn("HTTP 403", str(raised.exception))
         self.assertNotIn("test-secret", str(raised.exception))
 
+    def test_invalid_api_key_reason_and_masking(self):
+        for status in (400, 401, 403):
+            with self.subTest(status=status):
+                body = {"error": {"message": "Authentication failed: test-secret", "details": [
+                    {"@type": "type.googleapis.com/google.rpc.ErrorInfo", "reason": "API_KEY_INVALID"}]}}
+                error = urllib.error.HTTPError("url", status, "bad key", {}, io.BytesIO(json.dumps(body).encode()))
+                with patch("gemini_api.urllib.request.urlopen", side_effect=error) as send:
+                    with self.assertRaises(ValueError) as raised:
+                        gemini_api.generate("prompt", "test-secret", "gemini-test", 1, 2048, 30)
+                self.assertIn("API 키가 올바르지 않습니다. GEMINI_API_KEY를 확인해 주세요.", str(raised.exception))
+                self.assertNotIn("test-secret", str(raised.exception))
+                send.assert_called_once()
+                self.assertTrue(error.closed)
+
+    def test_key_reason_checked_before_detail_truncation(self):
+        body = {"error": {"message": "x" * 600, "details": [{"reason": "API_KEY_INVALID"}]}}
+        error = urllib.error.HTTPError("url", 400, "bad key", {}, io.BytesIO(json.dumps(body).encode()))
+        with patch("gemini_api.urllib.request.urlopen", side_effect=error):
+            with self.assertRaisesRegex(ValueError, "API 키가 올바르지 않습니다"):
+                gemini_api.generate("prompt", "test-key", "gemini-test", 1, 2048, 30)
+
+    def test_explicit_key_message_without_reason(self):
+        for message in ("API key not valid. Please pass a valid API key.", "Invalid API key", "API key is invalid"):
+            with self.subTest(message=message):
+                self.assertTrue(gemini_api._is_invalid_api_key(json.dumps({"error": {"message": message}})))
+        self.assertFalse(gemini_api._is_invalid_api_key(json.dumps({"error": {
+            "message": "API key not valid for this service", "details": [{"reason": "API_KEY_SERVICE_BLOCKED"}]}})))
+
+    def test_other_http_errors_keep_their_own_guidance(self):
+        cases = [(400, "INVALID_ARGUMENT", "Invalid temperature", "파라미터"),
+                 (401, "CREDENTIALS_MISSING", "Missing credentials", "API 키를 확인"),
+                 (403, "API_KEY_SERVICE_BLOCKED", "Permission denied", "권한"),
+                 (404, "NOT_FOUND", "Model not found", "--model"),
+                 (429, "RATE_LIMIT_EXCEEDED", "Too many requests", "요청 제한"),
+                 (500, "INTERNAL", "Server failure", "서비스 상태")]
+        for status, reason, message, expected in cases:
+            with self.subTest(status=status):
+                body = {"error": {"message": message, "details": [{"reason": reason}]}}
+                error = urllib.error.HTTPError("url", status, "failed", {}, io.BytesIO(json.dumps(body).encode()))
+                with patch("gemini_api.urllib.request.urlopen", side_effect=error):
+                    with self.assertRaises(ValueError) as raised:
+                        gemini_api.generate("prompt", "test-key", "gemini-test", 1, 2048, 30)
+                self.assertIn(expected, str(raised.exception))
+                self.assertNotIn("API 키가 올바르지 않습니다", str(raised.exception))
+
+    def test_non_json_and_unexpected_error_shapes_do_not_break_handling(self):
+        for body in ("not-json", "[]", '{"error":null}', '{"error":[]}',
+                     '{"error":{"details":[null,1,"wrong"],"message":1}}',
+                     '{"error":{"details":null}}', '{"error":{"details":{}}}',
+                     '{"error":{"details":"wrong"}}'):
+            with self.subTest(body=body):
+                error = urllib.error.HTTPError("url", 400, "failed", {}, io.BytesIO(body.encode()))
+                with patch("gemini_api.urllib.request.urlopen", side_effect=error):
+                    with self.assertRaisesRegex(ValueError, "HTTP 400"):
+                        gemini_api.generate("prompt", "test-key", "gemini-test", 1, 2048, 30)
+
+    def test_invalid_key_cli_message_and_exit_code(self):
+        body = {"error": {"message": "API key not valid.", "details": [{"reason": "API_KEY_INVALID"}]}}
+        error = urllib.error.HTTPError("url", 400, "bad key", {}, io.BytesIO(json.dumps(body).encode()))
+        out, err = io.StringIO(), io.StringIO()
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}), \
+             patch.object(sys, "argv", ["main.py", "commit"]), \
+             patch("main.collect_changes", return_value=("M app.py", "+print(2)", 1, 0)), \
+             patch("gemini_api.urllib.request.urlopen", side_effect=error), \
+             contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            self.assertEqual(main.main(), 1)
+        self.assertIn("API 키가 올바르지 않습니다", err.getvalue())
+        self.assertIn("AI API 호출 횟수: 1", out.getvalue())
+
     def test_bad_json(self):
         with patch("gemini_api.urllib.request.urlopen", return_value=io.BytesIO(b"not-json")):
             with self.assertRaisesRegex(ValueError, "JSON"):

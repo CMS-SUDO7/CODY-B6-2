@@ -39,6 +39,28 @@ def build_payload(prompt: str, temperature: float, max_tokens: int) -> dict:
     }
 
 
+def _is_invalid_api_key(detail: str) -> bool:
+    """HTTP 코드만으로 단정하지 않고 서버의 키 오류 사유를 확인한다."""
+    try:
+        response = json.loads(detail)
+    except json.JSONDecodeError:
+        return False
+    error = response.get("error") if isinstance(response, dict) else None
+    if not isinstance(error, dict):
+        return False
+    details = error.get("details", [])
+    if not isinstance(details, list):
+        details = []
+    reasons = [item["reason"] for item in details
+               if isinstance(item, dict) and isinstance(item.get("reason"), str) and item["reason"]]
+    if reasons:
+        return "API_KEY_INVALID" in reasons
+    message = error.get("message", "")
+    return isinstance(message, str) and message.strip().casefold().startswith(
+        ("api key not valid", "invalid api key", "api key is invalid")
+    )
+
+
 def generate(prompt: str, api_key: str, model: str, temperature: float,
              max_tokens: int, timeout: float) -> dict:
     """HTTP POST 1회를 보내 AI가 만든 JSON 객체를 반환한다."""
@@ -53,7 +75,9 @@ def generate(prompt: str, api_key: str, model: str, temperature: float,
         with urllib.request.urlopen(request, timeout=timeout) as response:
             result = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
-        detail = error.read().decode("utf-8", errors="replace")
+        with error:
+            detail = error.read().decode("utf-8", errors="replace")
+        invalid_key = _is_invalid_api_key(detail)
         detail = mask_sensitive(detail, api_key)[:500]
         hints = {
             400: "API 키와 파라미터를 확인해 주세요.",
@@ -63,6 +87,8 @@ def generate(prompt: str, api_key: str, model: str, temperature: float,
             429: "무료 할당량 또는 요청 제한입니다. 잠시 후 다시 실행해 주세요.",
         }
         hint = hints.get(error.code, "API 서비스 상태를 확인해 주세요.")
+        if invalid_key:
+            hint = "API 키가 올바르지 않습니다. GEMINI_API_KEY를 확인해 주세요."
         raise ValueError(f"HTTP {error.code}: {hint} {detail}") from error
     except (urllib.error.URLError, TimeoutError, socket.timeout) as error:
         detail = mask_sensitive(str(error), api_key)
