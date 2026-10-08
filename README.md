@@ -212,10 +212,7 @@ fix: 출력 값 수정
 
 안전 모드는 기본으로 켜집니다. status, diff, 변경 이유, 검증 설명을 전송 전에 마스킹합니다. 현재 환경변수의 키와 알려진 Gemini/GitHub/OpenAI/AWS 키 형태, 이메일, 비밀값 할당, PEM 개인키 패턴을 가립니다. `password`/`passwd`/`pwd`/`passphrase`, `api-key`/`clientSecret`/`DB_PASSWORD_2`, `비밀번호`/`암호` 같은 이름을 처리합니다. 따옴표 값·여러 줄 리터럴·YAML 블록·괄호 표현식, Authorization의 Bearer/Basic, 연결 URL의 사용자명·비밀번호도 가립니다. 길이 제한 전에 먼저 마스킹하여 잘리는 경계의 값 노출을 줄입니다.
 
-민감정보 점검과 보완 후 [전체 테스트 34개 통과](docs/evidence/sensitive-test-results.txt). 실제 비밀값 대신 가짜 자료로 API 요청 본문, dry-run, AI 결과와 HTTP 오류를 검사했습니다. 형식별 확인 결과와 한계는 [민감정보 처리 점검](docs/sensitive_data.md)에 정리했습니다.
-
 입력은 다음 숫자로 제한합니다.  
-
 - diff: 앞에서부터 최대 10개 `diff --git` 블록, 최대 200줄, 한 줄 최대 1,000자.  
 - status/diff/reason/test: 각각 최대 20,000자. 한 항목이라도 잘리면 `omitted=true`를 전달하고 경고합니다.  
 - 동일 파일이 staged/unstaged 양쪽에 있으면 두 diff 블록으로 셉니다. 고유 파일 10개를 정확히 세는 정책은 아닙니다.  
@@ -225,10 +222,6 @@ fix: 출력 값 수정
 이 마스킹은 **AI 전송 자료와 터미널 출력**에 적용합니다. 원본 파일·Git index·커밋 이력·GitHub 파일은 수정하지 않으므로 원본을 그대로 커밋하면 비밀값도 업로드될 수 있습니다. 이름 없는 임의 문자열, 별도로 인코딩하거나 여러 표현식으로 나눈 비밀값은 알아내지 못할 수 있습니다. `--no-safe-mode`에서는 입력 원문이 전송됩니다.
 
 정상적인 `commit`/`pr` 실행은 생성 요청을 각각 **1회만 시도**합니다. API 오류, 출력 형식 오류에도 자동 재시도나 다른 모델로의 자동 전환은 없습니다. 변경 없음/키 없음/dry-run은 0회입니다. 호출 횟수는 클라이언트의 생성 요청 시도 수이고 Google의 청구나 내부 처리를 측정한 값은 아닙니다.  
-
-2026-10-08 확인 기준 공식 가격표의 `gemini-3.1-flash-lite` Standard에는 무료 입력·출력 구간이 있습니다. 실제 할당량은 AI Studio에서 확인하세요. 키 자체가 모든 요청의 무료 사용을 보장하지 않습니다. 결제 연결 여부와 모델/프로젝트 제한을 확인하고, 무료 할당량 소진 시 HTTP 429에 따라 기다립니다. 무료 구간의 데이터는 제품 개선에 사용될 수 있으므로 민감한 프로젝트는 전송하지 마세요.  
-
-최종 화면과 오류 메시지에도 마스킹을 적용합니다. `--no-safe-mode --dry-run` 조합은 원문을 그대로 보여 주므로 샘플 자료에서만 확인하세요.  
 
 ### 마스킹된 요청 JSON 확인
 
@@ -300,37 +293,6 @@ HTTP 400은 서버 상세 메시지와 CLI 범위를 확인하고, 401/403은 AI
 | README 필수 안내 | 이 문서 | 문서 검토 | 설치·키·명령·예시·한도·보안 안내 작성 |  
 | GitHub 소스 push | 기능별 브랜치와 `main` 병합 | 원격 파일·커밋·브랜치 확인 | [공개 저장소](https://github.com/CMS-SUDO7/CODY-B6-2) |
 
-## 8. 실제 커밋과 GitHub 제출  
-
-도구는 텍스트만 만들고 Git 커밋, push, GitHub PR 생성은 수행하지 않습니다. 원문의 원격 자동 반영 금지 조건에 맞춥니다. 결과를 복사하기 전에 diff에 요약된 변경과 실제 커밋할 변경이 같은지 확인하세요. 두 diff를 모두 요약하므로 일부만 스테이징한 상태의 `git commit`과 초안이 다를 수 있습니다.  
-
-이 프로젝트는 기능별 브랜치를 각각 push하고 `--no-ff`로 `main`에 병합하여 공개 등록했습니다. [커밋 이력](https://github.com/CMS-SUDO7/CODY-B6-2/commits/main/)과 [브랜치 목록](https://github.com/CMS-SUDO7/CODY-B6-2/branches)에서 작업 흐름을 확인할 수 있습니다. 다음 명령은 별도의 새 저장소에 등록할 때 참고하는 기본 예시입니다. `<실제_저장소_URL>`과 예시 메시지는 바꿔야 합니다.
-
-```powershell
-git add .  
-git diff --cached  
-# 위 diff를 바탕으로 만든 문구를 검토하고, 다음 예시 메시지를 교체합니다.  
-git commit -m "feat: Gemini 기반 Git 커밋 및 PR 초안 생성기 추가"  
-git branch -M main  
-git remote add origin <실제_저장소_URL>  
-git push -u origin main  
-```
-
-이미 `origin`이 있으면 중복 등록하지 말고 `git remote -v`로 주소를 확인하세요. 제출 시 저장소 링크와 README를 확인하고, **자신의 키로 실행한 생성 결과**를 추가하세요. API 키가 찍힌 화면은 제출하지 않습니다. 보너스 과제의 실제 PR 1건, 팀 컨벤션 비교, 안전 모드 정책 커스터마이징은 이번 필수 구현 범위에 포함하지 않았습니다.  
-
-## 9. 학습 순서와 재현  
-
-1. `docs/basic_knowledge.md`의 기초·용어를 읽습니다.  
-2. 샘플 또는 미션 저장소에서 `--dry-run`을 실행합니다.  
-3. Gemini 키를 설정하고 `commit` 또는 `pr`를 실행합니다.  
-4. 핵심 세 가지와 전체 함수 흐름을 읽습니다.  
-5. `docs/code_translation.md`로 실제 줄을 읽고 작은 수정 과제를 수행합니다.  
-
-네트워크 없이 CLI를 확인하려면 변경이 있는 Git 저장소에서 `python main.py commit --dry-run` 또는 `python main.py pr --dry-run`을 실행합니다. API 요청 없이 프롬프트가 출력되고 호출 횟수는 0회입니다.  
-
-REST 요청에서 CLI `--max-tokens`는 Gemini의 `maxOutputTokens`로 연결됩니다. 응답은 HTTP 응답 JSON 안의 `candidates[0].content.parts`에서 텍스트를 모은 뒤, AI가 쓴 JSON을 다시 해석합니다. 스키마 강제가 아니라 JSON MIME 요청과 프로그램의 후처리를 사용합니다.  
-
-유닛 테스트는 `python -m unittest discover -s tests -v`, 네트워크 없는 실행 로그 생성은 `python scripts/capture_evidence.py`로 실행합니다. 모듈별 수정·검증 방법은 [유지보수 지침](docs/maintenance.md)에 있습니다.
 
 ## 커밋과 PR 초안을 함께 생성하는 순서  
 
