@@ -1,0 +1,45 @@
+Command: python -m unittest discover -s tests -v
+Captured at: 2026-10-08T16:10:38+09:00
+Environment: Windows / Python 3.14.4
+Exit code: 0
+All sensitive data in tests is synthetic; no external API calls.
+
+test_bad_json (test_modules.ApiTests.test_bad_json) ... ok
+test_http_key_is_masked (test_modules.ApiTests.test_http_key_is_masked) ... ok
+test_network_failure (test_modules.ApiTests.test_network_failure) ... ok
+test_request_options_and_single_call (test_modules.ApiTests.test_request_options_and_single_call) ... ok
+test_truncated_response_is_not_a_draft_or_retried (test_modules.ApiTests.test_truncated_response_is_not_a_draft_or_retried) ... ok
+test_dry_run_shows_options_without_request (test_modules.FormatAndCliTests.test_dry_run_shows_options_without_request) ... ok
+test_mask_before_input_truncation (test_modules.FormatAndCliTests.test_mask_before_input_truncation) ... ok
+test_missing_key_hint_and_zero_calls (test_modules.FormatAndCliTests.test_missing_key_hint_and_zero_calls) ... ok
+test_numeric_output_budget_is_preserved_but_secrets_are_masked (test_modules.FormatAndCliTests.test_numeric_output_budget_is_preserved_but_secrets_are_masked) ... ok
+test_pr_missing_sections_have_field_guidance (test_modules.FormatAndCliTests.test_pr_missing_sections_have_field_guidance) ... ok
+test_title_limits_and_changes (test_modules.FormatAndCliTests.test_title_limits_and_changes) ... ok
+test_clean_unborn_and_cli (test_modules.GitTests.test_clean_unborn_and_cli) ... ok
+test_rename_with_spaces (test_modules.GitTests.test_rename_with_spaces) ... ok
+test_staged_and_unstaged_and_untracked (test_modules.GitTests.test_staged_and_unstaged_and_untracked) ... ok
+test_subdirectory_rejected (test_modules.GitTests.test_subdirectory_rejected) ... ok
+test_actual_request_body_and_returned_draft_are_masked (test_safety.SensitiveCliTests.test_actual_request_body_and_returned_draft_are_masked) ... ok
+test_dry_run_does_not_print_input_secrets (test_safety.SensitiveCliTests.test_dry_run_does_not_print_input_secrets) ... ok
+test_http_error_masks_password_and_email (test_safety.SensitiveCliTests.test_http_error_masks_password_and_email) ... ok
+test_all_input_fields_masked_before_building_request (test_safety.SensitiveInputTests.test_all_input_fields_masked_before_building_request) ... ok
+test_authorization_headers_and_inline_credentials (test_safety.SensitiveInputTests.test_authorization_headers_and_inline_credentials) ... ok
+test_compound_multiline_values (test_safety.SensitiveInputTests.test_compound_multiline_values) ... ok
+test_connection_urls_mask_entire_userinfo (test_safety.SensitiveInputTests.test_connection_urls_mask_entire_userinfo) ... ok
+test_email_variations (test_safety.SensitiveInputTests.test_email_variations) ... ok
+test_escaped_and_multiline_quotes (test_safety.SensitiveInputTests.test_escaped_and_multiline_quotes) ... ok
+test_escaped_json_inside_error_message (test_safety.SensitiveInputTests.test_escaped_json_inside_error_message) ... ok
+test_known_api_keys_and_private_key_blocks (test_safety.SensitiveInputTests.test_known_api_keys_and_private_key_blocks) ... ok
+test_multiline_masking_before_diff_size_limit (test_safety.SensitiveInputTests.test_multiline_masking_before_diff_size_limit) ... ok
+test_numeric_output_options_still_visible (test_safety.SensitiveInputTests.test_numeric_output_options_still_visible) ... ok
+test_password_names_and_formats (test_safety.SensitiveInputTests.test_password_names_and_formats) ... ok
+test_quoted_json_preserves_neighbors (test_safety.SensitiveInputTests.test_quoted_json_preserves_neighbors) ... ok
+test_safe_mode_disabled_keeps_input (test_safety.SensitiveInputTests.test_safe_mode_disabled_keeps_input) ... ok
+test_unlabeled_arbitrary_string_cannot_be_detected (test_safety.SensitiveInputTests.test_unlabeled_arbitrary_string_cannot_be_detected) ... ok
+test_unterminated_quote_masks_remainder (test_safety.SensitiveInputTests.test_unterminated_quote_masks_remainder) ... ok
+test_yaml_blocks_and_implicit_multiline (test_safety.SensitiveInputTests.test_yaml_blocks_and_implicit_multiline) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 3.043s
+
+OK
