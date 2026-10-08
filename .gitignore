@@ -9,3 +9,7 @@ __pycache__/
 
 # Keep local verification notes out of commits and GitHub.
 verification.md
+
+# Keep removed project files out of future commits.
+requirements.txt
+docs/git_workflow.md
