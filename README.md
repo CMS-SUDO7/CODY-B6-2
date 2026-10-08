@@ -5,6 +5,7 @@ Git 변경을 읽어 변경 요약, 커밋 메시지 또는 Pull Request(PR) 제
 ## 1. 환경과 파일  
 
 - 필요한 환경: Python 3.10 이상, Git, API 호출 시 인터넷 연결.  
+- 외부 패키지 없이 Python 표준 라이브러리만 사용합니다. `pip install`은 필요 없습니다.
 - 확인 환경: Linux, Python 3.12.14, Git 2.51.1.  
 
 | 파일 | 역할 |  
