@@ -30,7 +30,11 @@ git merge --no-ff feat/git-change-collection -m "merge: integrate Git change col
 git push origin main
 ```
 
-초기 설정을 포함한 7개의 등록 커밋과 기능·문서 브랜치의 6개 병합 커밋이 남습니다. 브랜치 병합은 Git으로 수행했으며, GitHub Pull Request는 별도로 만들지 않았습니다.
+최초 등록 당시 초기 설정을 포함한 7개의 등록 커밋과 기능·문서 브랜치의 6개 병합 커밋을 남겼습니다. 이 최초 등록 단계의 브랜치 병합은 Git으로 수행했으며, 당시 GitHub Pull Request는 별도로 만들지 않았습니다.
+
+## 등록 이후 정리
+
+`chore/remove-unused-requirements` 브랜치에서 `requirements.txt`를 삭제했습니다. 이 프로젝트는 Python 표준 라이브러리만 사용하므로 외부 패키지 설치 목록이 필요 없습니다. 위 최초 등록 기록의 파일명은 당시 커밋 내용을 설명합니다. 삭제 브랜치를 별도로 push하고 `main`에 병합하여 변경 이력을 보관했습니다.
 
 ## GitHub에서 확인하기
 
