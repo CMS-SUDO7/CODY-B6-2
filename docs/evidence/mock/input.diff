@@ -1,7 +1,0 @@
-diff --git a/app.py b/app.py
-index b917a72..d0e0fd6 100644
---- a/app.py
-+++ b/app.py
-@@ -1 +1 @@
--print(1)
-+print(2)
