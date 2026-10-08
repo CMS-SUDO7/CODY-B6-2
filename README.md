@@ -1,15 +1,11 @@
-# B6-2: Gemini 기반 Git 커밋·PR 초안 생성기
+# B6-2: AI 기반 Git 커밋·PR 초안 생성기
 
-Git 변경을 읽어 한국어 변경 요약, 커밋 메시지 또는 Pull Request(PR) 제목·본문을 터미널에 출력합니다. Python 표준 라이브러리로 Gemini REST API에 직접 HTTP 요청을 보냅니다. 웹 화면과 SDK는 사용하지 않습니다.
-
-> 구현과 로컬 검증을 완료하고 [공개 GitHub 저장소](https://github.com/CMS-SUDO7/CODY-B6-2)에 기능별 브랜치와 커밋으로 등록했습니다. 작업 순서와 브랜치별 파일은 [Git 작업 흐름](docs/git_workflow.md)에서 확인할 수 있습니다. 실제 Gemini 요청은 사용자 API 키가 없어 실행하지 않았습니다. 예시의 AI 문구는 설명용이며 실호출 결과가 아닙니다.
+Git 변경을 읽어 변경 요약, 커밋 메시지 또는 Pull Request(PR) 제목·본문을 터미널에 출력합니다.
 
 ## 1. 환경과 파일
 
 - 필요한 환경: Python 3.10 이상, Git, API 호출 시 인터넷 연결.
 - 확인 환경: Linux, Python 3.12.14, Git 2.51.1.
-- 추가 확인 환경: Windows PowerShell, Python 3.14.4, Git 2.54.0. CLI 도움말, 문법, 마스킹·출력 형식, 임시 Git 저장소의 commit/pr dry-run을 확인했습니다.
-- 추가 패키지 설치 없음. `requirements.txt`는 이 사실을 기록합니다.
 
 | 파일 | 역할 |
 | --- | --- |
@@ -48,7 +44,7 @@ python main.py commit --dry-run
 
 1. [Google AI Studio API Keys](https://aistudio.google.com/api-keys)에서 키를 발급합니다.
 2. 해당 프로젝트의 무료 사용 가능 모델과 할당량을 확인합니다.
-3. 현재 PowerShell 창에만 환경변수를 설정합니다. 키를 코드나 문서에 붙여 넣지 않습니다.
+3. 현재 터미널 창에만 환경변수를 설정합니다. 키를 코드나 문서에 붙여 넣지 않습니다.
 
 ```powershell
 $env:GEMINI_API_KEY = "발급받은_실제_키"
@@ -225,14 +221,5 @@ git push -u origin main
 5. `docs/code_translation.md`로 실제 줄을 읽고 작은 수정 과제를 수행합니다.
 
 네트워크 없이 CLI를 확인하려면 변경이 있는 Git 저장소에서 `python main.py commit --dry-run` 또는 `python main.py pr --dry-run`을 실행합니다. API 요청 없이 프롬프트가 출력되고 호출 횟수는 0회입니다.
-
-## 10. 공식 참고 자료
-
-다음 문서를 2026-10-08에 확인했습니다. 모델 이름, 가격과 할당량은 바뀔 수 있습니다.
-
-- [Gemini 3.1 Flash-Lite 모델](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite)
-- [Gemini API 가격](https://ai.google.dev/gemini-api/docs/pricing)
-- [Gemini generateContent REST API](https://ai.google.dev/api/generate-content)
-- [Gemini API 키](https://ai.google.dev/gemini-api/docs/api-key)
 
 REST 요청에서 CLI `--max-tokens`는 Gemini의 `maxOutputTokens`로 연결됩니다. 응답은 HTTP 응답 JSON 안의 `candidates[0].content.parts`에서 텍스트를 모은 뒤, AI가 쓴 JSON을 다시 해석합니다. 스키마 강제가 아니라 JSON MIME 요청과 프로그램의 후처리를 사용합니다.
