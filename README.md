@@ -2,7 +2,7 @@
 
 Git 변경을 읽어 변경 요약, 커밋 메시지 또는 Pull Request(PR) 제목·본문을 터미널에 출력합니다.  
 
-사전평가 보완 내용과 실행 증거는 [평가 항목별 안내](docs/evaluation.md)에 정리했습니다. [모의 REST를 연결한 실제 CLI 로그](docs/evidence/mock/README.md)는 외부 API 없이 재현할 수 있습니다. 실제 Gemini 로그는 `python scripts/capture_evidence.py --live`로 별도 기록하며, 모의 응답을 실제 AI 생성 결과로 제출하지 않습니다.
+사전평가 보완 내용과 실행 증거는 [평가 항목별 안내](docs/evaluation.md)에 정리했습니다. [실제 Gemini 실행 로그](docs/evidence/live/README.md)에 commit·PR 생성과 옵션 비교 결과를 저장했습니다. [모의 REST를 연결한 실제 CLI 로그](docs/evidence/mock/README.md)는 외부 API 없이 재현할 수 있습니다. 실제 Gemini 로그는 `python scripts/capture_evidence.py --live`로 별도 기록합니다.
 
 ## 1. 환경과 파일  
 
@@ -125,7 +125,20 @@ temperature는 다음 토큰 선택 확률의 분포를 조절합니다. 일반�
 
 실제 옵션 비교 로그를 재현하려면 `python scripts/capture_evidence.py --live`를 실행합니다. 동일한 샘플 diff에서 기준 PR(0.2/2048), temperature 변경(1.2/2048), 작은 예산(0.2/64), 큰 예산(0.2/4096)을 기록합니다. 종료 코드·제목·전체 stdout/stderr를 보존하며, 작은 예산의 실패도 증거로 남깁니다. 자세한 방법은 [실행 증거 안내](docs/evaluation.md)를 참고하세요.
 
+2026-10-08 15:59 KST에 시작한 실제 Gemini 비교 결과입니다. 모델은 `gemini-3.1-flash-lite`, 입력은 `app.py`의 `print(1) → print(2)`로 고정했습니다. 각 조건을 1회 실행했습니다.
+
+| temperature | max_tokens | 실제 결과 | 원문 로그 |
+| --- | --- | --- | --- |
+| 0.2 | 2048 | 종료 0, 제목 `app.py 출력값 변경`, PR 3개 섹션 완성 | [기준 PR](docs/evidence/live/pr-baseline.txt) |
+| 1.2 | 2048 | 종료 0, 제목 `app.py 샘플 출력 기대값 변경`, PR 3개 섹션 완성 | [temperature 변경](docs/evidence/live/pr-temperature.txt) |
+| 0.2 | 64 | 종료 1, `MAX_TOKENS`, 미완료 초안 출력 없음 | [작은 예산](docs/evidence/live/pr-small-budget.txt) |
+| 0.2 | 4096 | 종료 0, 기준 PR과 같은 제목·본문 | [큰 예산](docs/evidence/live/pr-large-budget.txt) |
+
+temperature 비교에서 제목·요약의 표현 차이를 관측했지만 각 조건 1회라 설정의 일반적인 효과를 입증하지는 않습니다. 64토큰은 이 입력의 PR을 완성하기에 부족했고, 2048과 4096은 충분했습니다. 큰 예산에서도 결과가 같았으므로 상한을 늘리면 반드시 글이 길어지는 것은 아니라는 점을 이 실행에서 확인했습니다.
+
 ## 4. 출력 예시  
+
+실제 API 실행에서 기록한 [커밋 출력](docs/evidence/live/commit.txt)과 [PR 제목·본문 출력](docs/evidence/live/pr-baseline.txt)을 제출 증거로 확인할 수 있습니다. 두 실행 모두 종료 코드 0, 생성 요청 시도 1회입니다. 아래 예시는 형식을 설명하기 위한 별도 자료입니다.
 
 다음은 `app.py`의 출력 값을 1에서 2로 수정한 상황을 위한 **설명용 예시**입니다. 실제 문구는 달라집니다.  
 
@@ -272,7 +285,7 @@ HTTP 400은 서버 상세 메시지와 CLI 범위를 확인하고, 401/403은 AI
 | status 변경 목록/diff 수집 | `collect_changes/run_git` | 실제 임시 Git 저장소 | 신규·수정·staged+unstaged·rename·빈 파일·binary 확인 |  
 | 변경 없을 때 종료 | `main` | 빈 저장소에서 키 없이 실행 | 메시지 출력, 요청 0회 |  
 | 환경변수 키 사용 | `main` | 키 미설정/모의 환경변수 | 누락 안내, 코드에 실제 키 없음 |  
-| AI API 요청과 출력 | `gemini_api.py: generate`, `main` | urlopen 모의 응답으로 CLI 끝까지 실행 | commit/pr 통과; **실제 Gemini 호출 미확인** |  
+| AI API 요청과 출력 | `gemini_api.py: generate`, `main` | 실제 Gemini 및 모의 REST로 CLI 끝까지 실행 | [실제 commit/pr 성공](docs/evidence/live/README.md), 각 요청 1회 |
 | 모델/temperature/max_tokens 옵션 | `parse_args`, `generate` | 범위 오류·POST JSON 검사 | 기본값/전달/경계 확인 |  
 | API 실패 원인 안내 | `generate/main` | HTTP 400/401/403/404/429/500·연결 오류 모의 | 원인 안내, 키 마스킹 확인 |  
 | 커밋 제목 1줄·본문 불릿 | `build_prompt/format_draft` | 모의 생성/길이 초과 출력 | 최대 72자·권장 경고·불릿 2개 확인 |  

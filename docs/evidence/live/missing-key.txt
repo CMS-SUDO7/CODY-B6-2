@@ -1,0 +1,13 @@
+Captured at: 2026-10-08T15:59:29+09:00
+Mode: live
+Command: python main.py commit
+Exit code: 1
+
+--- stdout ---
+[INFO] Git status 수집 완료: 1개 항목 변경
+[INFO] Git diff 수집 완료: 10줄 (구분 헤더 포함)
+[INFO] AI API 호출 횟수: 0
+
+--- stderr ---
+[ERROR] GEMINI_API_KEY 환경변수가 설정되지 않았습니다.
+[HINT] PowerShell 설정 예시: Set-Item Env:GEMINI_API_KEY "발급받은_키"

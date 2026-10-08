@@ -1,0 +1,13 @@
+Captured at: 2026-10-08T15:59:29+09:00
+Mode: live
+Command: python main.py pr --model gemini-3.1-flash-lite --temperature 0.2 --max-tokens 64 --timeout 120 --reason 샘플 출력의 기대값을 1에서 2로 변경하기 위해 수정 --test python app.py 실행 결과 2 출력, 종료 코드 0 확인
+Exit code: 1
+
+--- stdout ---
+[INFO] Git status 수집 완료: 1개 항목 변경
+[INFO] Git diff 수집 완료: 10줄 (구분 헤더 포함)
+[INFO] Gemini API 요청 중: gemini-3.1-flash-lite (temperature=0.2, max_tokens=64)
+[INFO] AI API 호출 횟수: 1
+
+--- stderr ---
+[ERROR] 생성이 완료되지 않았습니다 (MAX_TOKENS). MAX_TOKENS라면 --max-tokens를 늘려 주세요.
