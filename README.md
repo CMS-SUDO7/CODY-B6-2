@@ -17,7 +17,6 @@ Git 변경을 읽어 변경 요약, 커밋 메시지 또는 Pull Request(PR) 제
 | `output_format.py` | 제목 길이 보정, PR 헤더와 불릿 생성 |  
 | `docs/basic_knowledge.md` | 기초 문법, 용어, 설계 이유, 작은 학습 과제, 추천 책 |  
 | `docs/code_translation.md` | 함수 관계, 입력 추적, 최종 소스 줄별 해설 |  
-| `docs/git_workflow.md` | 기능별 커밋·브랜치·병합과 GitHub 확인 링크 |  
 | `.gitignore` | 환경 파일·키 파일·캐시의 신규 추적 방지 |  
 
 ## 2. 처음 실행하기: Windows PowerShell  
@@ -193,13 +192,13 @@ fix: 출력 값 수정
 | 실행당 요청 1~2회 이하 | `generate/main` | 요청 호출 수 계측 | 정상/실패 1회; 재시도 없음 |  
 | 안전 모드 제공 | `safety.py: mask_sensitive/prepare_input` | 키/이메일/PEM/200줄/10블록/장문 | 마스킹과 제한 확인 |  
 | README 필수 안내 | 이 문서 | 문서 검토 | 설치·키·명령·예시·한도·보안 안내 작성 |  
-| GitHub 소스 push | 기능별 브랜치와 `main` 병합 | 원격 파일·커밋·브랜치 확인 | [공개 저장소](https://github.com/CMS-SUDO7/CODY-B6-2), [작업 흐름](docs/git_workflow.md) |  
+| GitHub 소스 push | 기능별 브랜치와 `main` 병합 | 원격 파일·커밋·브랜치 확인 | [공개 저장소](https://github.com/CMS-SUDO7/CODY-B6-2) |
 
 ## 8. 실제 커밋과 GitHub 제출  
 
 도구는 텍스트만 만들고 Git 커밋, push, GitHub PR 생성은 수행하지 않습니다. 원문의 원격 자동 반영 금지 조건에 맞춥니다. 결과를 복사하기 전에 diff에 요약된 변경과 실제 커밋할 변경이 같은지 확인하세요. 두 diff를 모두 요약하므로 일부만 스테이징한 상태의 `git commit`과 초안이 다를 수 있습니다.  
 
-이 프로젝트의 실제 공개 등록은 [Git 작업 흐름](docs/git_workflow.md)에 기록한 기능별 브랜치 push와 `--no-ff` 병합 순서로 수행했습니다. 다음 명령은 별도의 새 저장소에 등록할 때 참고하는 기본 예시입니다. `<실제_저장소_URL>`과 예시 메시지는 바꿔야 합니다.  
+이 프로젝트는 기능별 브랜치를 각각 push하고 `--no-ff`로 `main`에 병합하여 공개 등록했습니다. [커밋 이력](https://github.com/CMS-SUDO7/CODY-B6-2/commits/main/)과 [브랜치 목록](https://github.com/CMS-SUDO7/CODY-B6-2/branches)에서 작업 흐름을 확인할 수 있습니다. 다음 명령은 별도의 새 저장소에 등록할 때 참고하는 기본 예시입니다. `<실제_저장소_URL>`과 예시 메시지는 바꿔야 합니다.
 
 ```powershell
 git add .  
