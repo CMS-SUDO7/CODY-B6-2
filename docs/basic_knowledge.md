@@ -74,7 +74,7 @@ else:
 | 작업 폴더(working tree) | 지금 편집 중인 실제 파일 | `git diff`가 unstaged 변경 확인 |
 | 인덱스(index)/staging area | 다음 커밋에 넣으려고 선택한 상태 | `git add`, `git diff --cached` |
 | 커밋(commit) | 저장소에 기록하는 변경 스냅샷 | 도구는 메시지만 만들고 커밋하지 않음 |
-| diff | 변경 전후의 차이; `-`는 제거, `+`는 추가 | `git_tools.py`가 입력 수집 |
+| diff | 변경 전후의 차이; `-`는 제거, `+`는 추가 | `git_changes.py`가 입력 수집 |
 | untracked(미추적) | Git이 아직 추적하지 않는 새 파일 | status `??`, diff에는 내용 없음 |
 | PR: Pull Request | 브랜치 변경을 검토하고 합치도록 요청 | 이번 도구는 제목과 본문 텍스트만 출력 |
 | API: Application Programming Interface | 다른 프로그램에 작업을 요청하는 약속 | `generate`가 Gemini에 요청 |
@@ -177,7 +177,7 @@ format_draft("commit", {"title": "a" * 90, "changes": ["출력 수정"]})
 
 ### 문제 2: 값의 변화 추적
 
-`git_tools.py: collect_changes()`에서 `records`가 다음과 같다고 가정합니다. 첫 번째 루프와 두 번째 루프가 끝난 뒤 `index`, `statuses`, `untracked`를 써 보세요.
+`git_changes.py: collect_changes()`에서 `records`가 다음과 같다고 가정합니다. 첫 번째 루프와 두 번째 루프가 끝난 뒤 `index`, `statuses`, `untracked`를 써 보세요.
 
 ```python
 ["R  new.py", "old.py", "?? memo.txt", ""]

@@ -50,13 +50,13 @@ Windows / Python 3.14.4 / Git 2.54.0에서 [모듈 테스트 15개 통과](evide
 
 | 요구사항 | 구현 파일·함수 | 확인 방법 | 확인 결과 |
 | --- | --- | --- | --- |
-| Python 3.10 이상 터미널 CLI | `main.py: parse_args/main` | help·컴파일·임시 저장소 실행 | Python 3.12.14 및 Windows/Python 3.14.4 기본 동작 통과, 3.10 직접 실행은 미확인 |
-| Git 루트 실행 | `git_tools.py: collect_changes` | 비Git/하위 디렉터리에서 실행 | 거부 확인 |
+| Python 3.10 이상 터미널 CLI | `cli.py: parse_args`, `main.py: main` | help·컴파일·임시 저장소 실행 | Python 3.12.14 및 Windows/Python 3.14.4 기본 동작 통과, 3.10 직접 실행은 미확인 |
+| Git 루트 실행 | `git_changes.py: collect_changes` | 비Git/하위 디렉터리에서 실행 | 거부 확인 |
 | status 변경 목록/diff 수집 | `collect_changes/run_git` | 실제 임시 Git 저장소 | 신규·수정·staged+unstaged·rename·빈 파일·binary 확인 |
 | 변경 없을 때 종료 | `main` | 빈 저장소에서 키 없이 실행 | 메시지 출력, 요청 0회 |
 | 환경변수 키 사용 | `main` | 키 미설정/모의 환경변수 | 누락 안내, 코드에 실제 키 없음 |
 | AI API 요청과 출력 | `gemini_api.py: generate`, `main` | 실제 Gemini 및 모의 REST로 CLI 끝까지 실행 | [실제 commit/pr 성공](evidence/live/README.md), 각 요청 1회 |
-| 모델/temperature/max_tokens 옵션 | `parse_args`, `generate` | 범위 오류·POST JSON 검사 | 기본값/전달/경계 확인 |
+| 모델/temperature/max_tokens 옵션 | `cli.py: parse_args`, `gemini_api.py: generate` | 범위 오류·POST JSON 검사 | 기본값/전달/경계 확인 |
 | API 실패 원인 안내 | `generate/main` | HTTP 400/401/403/404/429/500·연결 오류 모의 | 원인 안내, 키 마스킹 확인 |
 | 커밋 제목 1줄·본문 불릿 | `build_prompt/format_draft` | 모의 생성/길이 초과 출력 | 최대 72자·권장 경고·불릿 2개 확인 |
 | PR 제목·Why/What/How to Test | `format_draft/get_items` | 누락·잘못된 타입을 가진 출력 | 최대 80자·3개 헤더·각 불릿 보충 확인 |

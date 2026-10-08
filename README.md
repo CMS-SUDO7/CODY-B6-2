@@ -170,8 +170,9 @@ app.py 출력값 변경
 
 | 파일 | 역할 |
 | --- | --- |
-| [main.py](main.py) | CLI 옵션 처리와 실행 흐름, 결과 출력 |
-| [git_tools.py](git_tools.py) | Git status와 staged/unstaged diff 수집 |
+| [main.py](main.py) | 실행 진입점과 처리 흐름, 결과 출력 |
+| [cli.py](cli.py) | 명령줄 옵션 해석과 입력값 검증 |
+| [git_changes.py](git_changes.py) | Git status와 staged/unstaged diff 수집 |
 | [safety.py](safety.py) | 민감값 마스킹과 입력 크기 제한 |
 | [gemini_api.py](gemini_api.py) | 프롬프트 구성과 Gemini REST 요청·응답 처리 |
 | [output_format.py](output_format.py) | 제목 길이와 커밋·PR 형식 정리 |

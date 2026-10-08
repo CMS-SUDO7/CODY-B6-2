@@ -13,7 +13,7 @@ from unittest.mock import patch
 import urllib.error
 
 import gemini_api
-import git_tools
+import git_changes
 import main
 from output_format import format_draft
 from safety import mask_sensitive, prepare_input
@@ -40,7 +40,7 @@ class GitTests(unittest.TestCase):
         subprocess.run(["git", *args], check=True, capture_output=True)
 
     def test_clean_unborn_and_cli(self):
-        self.assertEqual(git_tools.collect_changes(), ("", "", 0, 0))
+        self.assertEqual(git_changes.collect_changes(), ("", "", 0, 0))
         stream = io.StringIO()
         with patch.object(sys, "argv", ["main.py", "commit"]), contextlib.redirect_stdout(stream):
             self.assertEqual(main.main(), 0)
@@ -52,7 +52,7 @@ class GitTests(unittest.TestCase):
         self.git("add", "app.py")
         Path("app.py").write_text("print(2)\n", encoding="utf-8")
         Path("new.py").write_text("private content", encoding="utf-8")
-        status, diff, count, untracked = git_tools.collect_changes()
+        status, diff, count, untracked = git_changes.collect_changes()
         self.assertIn("AM app.py", status)
         self.assertIn("+print(1)", diff.split("[UNSTAGED]")[0])
         self.assertIn("+print(2)", diff.split("[UNSTAGED]")[1])
@@ -64,7 +64,7 @@ class GitTests(unittest.TestCase):
         self.git("add", ".")
         self.git("commit", "-m", "init")
         self.git("mv", "old name.py", "new name.py")
-        status, _, count, _ = git_tools.collect_changes()
+        status, _, count, _ = git_changes.collect_changes()
         self.assertIn("new name.py <- old name.py", status)
         self.assertEqual(count, 1)
 
@@ -72,7 +72,7 @@ class GitTests(unittest.TestCase):
         Path("child").mkdir()
         os.chdir("child")
         with self.assertRaisesRegex(ValueError, "루트"):
-            git_tools.collect_changes()
+            git_changes.collect_changes()
 
 
 class ApiTests(unittest.TestCase):

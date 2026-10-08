@@ -4,8 +4,9 @@
 
 | 수정 대상 | 유지해야 할 계약 | 검사 방법 |
 | --- | --- | --- |
-| git_tools.py | 루트에서 수집, 원본 저장소 변경 없음, staged/unstaged 구분, untracked는 경로만 | GitTests: 임시 Git 저장소에서 수집·공백 rename·하위 경로 거부 검사 |
+| git_changes.py | 루트에서 수집, 원본 저장소 변경 없음, staged/unstaged 구분, untracked는 경로만 | GitTests: 임시 Git 저장소에서 수집·공백 rename·하위 경로 거부 검사 |
 | gemini_api.py | contents/generationConfig 구조, 키는 헤더만, generateContent 1회, STOP만 성공 | ApiTests: urlopen을 모의 응답으로 대체해 실제 POST JSON과 호출 수, HTTP·네트워크·절단·JSON 실패 검사 |
+| cli.py | 기존 명령·옵션·기본값 유지, 잘못된 입력은 종료 코드 2 | FormatAndCliTests 및 main.py --help: 옵션 해석과 CLI 동작 확인 |
 | main.py | 사용자 오류 안내, 호출 수, 옵션 전달, dry-run 네트워크 0회 | FormatAndCliTests 및 capture_evidence.py: CLI 실행과 stdout/stderr 확인 |
 | output_format.py | title 최대 길이, 커밋 불릿 2개, PR 필수 섹션, 사실 미확인 표시 | FormatAndCliTests: 누락 필드·권장 예시·길이 경계 검사 |
 | safety.py | 길이 제한 전에 마스킹, 생략 표시 유지 | tests/test_safety.py: 이름·인용·다중행·인증 헤더·URL·이메일, 실제 요청 본문과 출력 검사 |
