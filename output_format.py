@@ -1,6 +1,12 @@
 """AI 출력을 다듬고 길이와 PR 템플릿을 보장한다."""
 
 
+MAX_COMMIT_TITLE_CHARS = 72
+MAX_PR_TITLE_CHARS = 80
+RECOMMENDED_COMMIT_TITLE_CHARS = 50
+MAX_COMMIT_CHANGE_ITEMS = 2
+
+
 def one_line(value: object) -> str:
     """문자열만 받아 줄바꿈과 연속된 공백을 정리한다."""
     if not isinstance(value, str):
@@ -28,16 +34,16 @@ def format_draft(command: str, draft: dict) -> tuple[str, list[str]]:
     if not title:
         raise ValueError("AI 출력에 비어 있지 않은 title이 없습니다. "
                          "권장 작성 예: fix: 빈 입력 오류 처리 (실제 diff에 맞게 수정)")
-    limit = 72 if command == "commit" else 80
+    limit = MAX_COMMIT_TITLE_CHARS if command == "commit" else MAX_PR_TITLE_CHARS
     if len(title) > limit:
         title = title[:limit - 1].rstrip() + "…"
         notices.append(f"title을 {limit}자 이내로 줄였습니다. 의미를 확인해 주세요. "
                        "권장 작성 예: fix: 빈 입력 오류 처리 (실제 diff에 맞게 수정)")
     if command == "commit":
-        if len(title) > 50:
-            notices.append("커밋 title은 50자 이내를 권장합니다. "
+        if len(title) > RECOMMENDED_COMMIT_TITLE_CHARS:
+            notices.append(f"커밋 title은 {RECOMMENDED_COMMIT_TITLE_CHARS}자 이내를 권장합니다. "
                            "대상과 동작만 남기세요. 예: fix: 빈 입력 오류 처리")
-        items = get_items(draft, "changes", "핵심 변경: " + title)[:2]
+        items = get_items(draft, "changes", "핵심 변경: " + title)[:MAX_COMMIT_CHANGE_ITEMS]
         body = "\n".join("- " + item for item in items)
         return title + "\n\n" + body, notices
     sections = [

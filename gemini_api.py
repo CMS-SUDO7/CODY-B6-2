@@ -7,16 +7,28 @@ import urllib.request
 from urllib.parse import quote
 
 from safety import mask_sensitive
+from output_format import (
+    MAX_COMMIT_CHANGE_ITEMS,
+    MAX_PR_TITLE_CHARS,
+    RECOMMENDED_COMMIT_TITLE_CHARS,
+)
+
+
+MAX_ERROR_DETAIL_CHARS = 500
 
 
 def build_prompt(command: str, data: dict) -> str:
     """출력 구조와 변경 맥락을 분리해 프롬프트 문자열을 만든다."""
     if command == "commit":
         shape = '{"summary":"요약", "title":"제목", "changes":["변경 사항"]}'
-        rule = "제목은 feat/fix/docs/refactor/test/chore 중 적합한 prefix와 함께 50자 이내로 작성. changes는 핵심 변경 1~2개."
+        rule = (
+            "제목은 feat/fix/docs/refactor/test/chore 중 적합한 prefix와 함께 "
+            f"{RECOMMENDED_COMMIT_TITLE_CHARS}자 이내로 작성. "
+            f"changes는 핵심 변경 1~{MAX_COMMIT_CHANGE_ITEMS}개."
+        )
     else:
         shape = '{"summary":"요약", "title":"제목", "why":["배경"], "what":["변경"], "how_to_test":["검증 방법"]}'
-        rule = "제목 80자 이내. why/what/how_to_test는 각각 1개 이상의 구체적인 항목."
+        rule = f"제목 {MAX_PR_TITLE_CHARS}자 이내. why/what/how_to_test는 각각 1개 이상의 구체적인 항목."
     instruction = (
         "한국어 Git 변경 설명을 작성하라. JSON 객체만 반환하라. 형식: " + shape
         + "\n" + rule
@@ -78,7 +90,7 @@ def generate(prompt: str, api_key: str, model: str, temperature: float,
         with error:
             detail = error.read().decode("utf-8", errors="replace")
         invalid_key = _is_invalid_api_key(detail)
-        detail = mask_sensitive(detail, api_key)[:500]
+        detail = mask_sensitive(detail, api_key)[:MAX_ERROR_DETAIL_CHARS]
         hints = {
             400: "API 키와 파라미터를 확인해 주세요.",
             401: "API 키를 확인해 주세요.",

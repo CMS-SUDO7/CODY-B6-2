@@ -34,13 +34,13 @@
 
 ### f-string과 삼항 표현식
 
-`f"변경 {count}개"`는 변수 값을 문자열에 넣습니다. `limit = 72 if command == "commit" else 80`은 다음과 같습니다.
+`f"변경 {count}개"`는 변수 값을 문자열에 넣습니다. `limit = MAX_COMMIT_TITLE_CHARS if command == "commit" else MAX_PR_TITLE_CHARS`는 다음과 같습니다. 두 상수의 값은 각각 72와 80입니다.
 
 ```python
 if command == "commit":
-    limit = 72
+    limit = MAX_COMMIT_TITLE_CHARS
 else:
-    limit = 80
+    limit = MAX_PR_TITLE_CHARS
 ```
 
 `main.py`의 `label` 선택도 같은 문법입니다. `items or [fallback]`은 items가 비었을 때 안내 한 항목을 대신 반환합니다.
@@ -248,7 +248,7 @@ format_draft("commit", {"title": "a" * 90, "changes": ["출력 수정"]})
 
 ### 문제 3: 작은 기능 수정
 
-`safety.py: prepare_input()`의 최대 diff 줄 수를 200에서 100으로 바꾸세요. 다른 제한에 걸리지 않는 짧은 150줄 샘플 diff에서 반환된 줄 수는 100이고 `omitted`는 True여야 합니다. README와 이 기초 문서, 줄별 해설의 숫자·줄 번호도 함께 맞춥니다. 이는 학습 과제이며 현재 실제 상한은 200줄입니다.
+`safety.py`의 `MAX_DIFF_LINES`를 200에서 100으로 바꾸세요. 다른 제한에 걸리지 않는 짧은 150줄 샘플 diff에서 반환된 줄 수는 100이고 `omitted`는 True여야 합니다. README와 이 기초 문서, 줄별 해설의 숫자·줄 번호도 함께 맞춥니다. 이는 학습 과제이며 현재 실제 상한은 200줄입니다.
 
 ### 문제 4: 여러 줄 마스킹과 생략 표시
 
@@ -263,7 +263,7 @@ data, omitted = prepare_input("M config.py", sample, "", "", True, "")
 
 1. 71자의 `a`와 `…`가 합쳐져 72자입니다. 최대 길이 보정 경고와 50자 권장 경고가 생겨 총 2개입니다.
 2. 첫 번째 항목을 읽어 index가 1이 된 뒤 이름 변경의 원래 경로도 소비해 2가 됩니다. statuses는 `["R  new.py <- old.py"]`, untracked는 0입니다. 다음 루프는 memo를 읽어 index 3, statuses에 `"?? memo.txt"` 추가, untracked 1입니다. 끝의 빈 항목은 다음 루프에서 건너뜁니다.
-3. `len(lines) >= 200`의 200을 100으로 바꿉니다. 다른 제한에 걸리지 않는 입력은 100줄까지 append한 뒤 다음 줄에서 omitted를 True로 설정하고 break합니다. 정확히 100줄이고 다른 상한에도 걸리지 않으면 생략이 없어 False입니다.
+3. `MAX_DIFF_LINES = 200`의 200을 100으로 바꿉니다. `prepare_input()`은 이 상수를 읽으므로 조건문을 따로 수정하지 않습니다. 다른 제한에 걸리지 않는 입력은 100줄까지 append한 뒤 다음 줄에서 omitted를 True로 설정하고 break합니다. 정확히 100줄이고 다른 상한에도 걸리지 않으면 생략이 없어 False입니다.
 4. 두 demo 문자열은 괄호 표현식 전체와 함께 `[REDACTED]`로 바뀌고 `max_tokens=2048`은 유지됩니다. 이 작은 입력은 크기 제한에 걸리지 않으므로 omitted는 False입니다. 마스킹과 입력 생략은 다른 작업입니다.
 
 ## 6. 추천 책 한 권

@@ -4,17 +4,20 @@ from pathlib import Path
 import subprocess
 
 
+GIT_TIMEOUT_SECONDS = 30
+
+
 def run_git(arguments: list[str]) -> str:
     """Git 명령의 표준 출력을 반환하고 실패를 ValueError로 알린다."""
     try:
         result = subprocess.run(
             ["git", "-c", "core.quotepath=false", *arguments],
-            capture_output=True, encoding="utf-8", errors="replace", timeout=30,
+            capture_output=True, encoding="utf-8", errors="replace", timeout=GIT_TIMEOUT_SECONDS,
         )
     except FileNotFoundError as error:
         raise ValueError("Git을 설치하고 터미널을 다시 열어 주세요.") from error
     except subprocess.TimeoutExpired as error:
-        raise ValueError("Git 명령이 30초 안에 끝나지 않았습니다.") from error
+        raise ValueError(f"Git 명령이 {GIT_TIMEOUT_SECONDS}초 안에 끝나지 않았습니다.") from error
     if result.returncode != 0:
         raise ValueError("Git 명령 실패: " + result.stderr.strip())
     return result.stdout

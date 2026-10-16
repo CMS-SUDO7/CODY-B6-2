@@ -3,6 +3,12 @@
 import re
 
 
+MAX_DIFF_BLOCKS = 10
+MAX_DIFF_LINES = 200
+MAX_DIFF_LINE_CHARS = 1000
+MAX_INPUT_FIELD_CHARS = 20000
+
+
 # 이름이 있는 비밀값을 탐지한다. 숫자·하이픈·camelCase·한글 이름도 포함한다.
 _SECRET_NAME = (
     r"[\w.-]*(?:api[ _-]?key|pass(?:word|wd|phrase)|pwd|secret|token|"
@@ -14,6 +20,13 @@ _ASSIGNMENT = re.compile(
 )
 
 
+def _is_escaped_quote_end(backslash_count: int) -> bool:
+    """JSON 안의 인용부호가 값의 끝을 나타내는지 판별한다."""
+    # JSON에서는 원문의 역슬래시가 2개로 표현되고 인용부호 앞에 1개가 더 붙는다.
+    # 원문에서 짝수 개의 역슬래시 뒤에 닫는 인용부호가 있으면 4n+1개가 된다.
+    return backslash_count % 4 == 1
+
+
 def _quoted_end(text: str, start: int, quote: str) -> int:
     """일반 리터럴과 JSON 문자열 안의 이스케이프된 인용 값을 읽는다."""
     end = start + len(quote)
@@ -22,11 +35,13 @@ def _quoted_end(text: str, start: int, quote: str) -> int:
             last = end
             while last < len(text) and text[last] == "\\":
                 last += 1
-            if last < len(text) and text[last] == quote[-1]:
-                if (last - end) % 4 == 1:
-                    return last + 1
-                end = last + 1
+            if last >= len(text) or text[last] != quote[-1]:
+                end += 2
                 continue
+            if _is_escaped_quote_end(last - end):
+                return last + 1
+            end = last + 1
+            continue
         if text.startswith(quote, end):
             return end + len(quote)
         if text[end] == "\\":
@@ -58,6 +73,23 @@ def _compound_end(text: str, start: int) -> int:
     return len(text)
 
 
+def _yaml_block_end(text: str, assignment_start: int, line_end: int) -> int:
+    """diff 추가·삭제 접두사를 제외한 들여쓰기로 YAML 블록 끝을 찾는다."""
+    line_start = text.rfind("\n", 0, assignment_start) + 1
+    prefix = text[line_start:assignment_start].lstrip("+-")
+    indent = len(prefix) - len(prefix.lstrip(" \t"))
+    end = line_end
+    offset = line_end + 1
+    for line in text[offset:].splitlines(keepends=True):
+        logical = line.lstrip("+-")
+        next_indent = len(logical) - len(logical.lstrip(" \t"))
+        if logical.strip() and next_indent <= indent:
+            break
+        end = offset + len(line.rstrip("\r\n"))
+        offset += len(line)
+    return end
+
+
 def _mask_assignments(text: str) -> str:
     """따옴표 값·여러 줄 리터럴·YAML 블록을 값 끝까지 가린다."""
     pieces = []
@@ -87,19 +119,7 @@ def _mask_assignments(text: str) -> str:
         elif quote_start < len(text) and text[quote_start] in "([{":
             end = _compound_end(text, quote_start)
         elif not value.strip() or re.fullmatch(r"[|>][+-]?[1-9]?(?:[ \t]+#.*)?", value):
-            # diff의 +/- 접두사를 제외한 들여쓰기로 YAML 블록 끝을 찾는다.
-            line_start = text.rfind("\n", 0, match.start()) + 1
-            prefix = text[line_start:match.start()].lstrip("+-")
-            indent = len(prefix) - len(prefix.lstrip(" \t"))
-            end = line_end
-            offset = line_end + 1
-            for line in text[offset:].splitlines(keepends=True):
-                logical = line.lstrip("+-")
-                next_indent = len(logical) - len(logical.lstrip(" \t"))
-                if logical.strip() and next_indent <= indent:
-                    break
-                end = offset + len(line.rstrip("\r\n"))
-                offset += len(line)
+            end = _yaml_block_end(text, match.start(), line_end)
             if end == line_end and not value.strip():
                 continue
         else:
@@ -154,19 +174,19 @@ def prepare_input(status: str, diff: str, reason: str, test: str,
         for line in diff.splitlines():
             if line.startswith("diff --git "):
                 file_count += 1
-            if file_count > 10 or len(lines) >= 200:
+            if file_count > MAX_DIFF_BLOCKS or len(lines) >= MAX_DIFF_LINES:
                 omitted = True
                 break
-            # 한 줄짜리 매우 큰 변경도 최대 1,000자로 제한한다.
-            if len(line) > 1000:
+            # 한 줄짜리 매우 큰 변경도 지정한 문자 수로 제한한다.
+            if len(line) > MAX_DIFF_LINE_CHARS:
                 omitted = True
-            lines.append(line[:1000])
+            lines.append(line[:MAX_DIFF_LINE_CHARS])
         diff = "\n".join(lines)
     data = {"status": status, "diff": diff, "reason": reason, "test": test}
     if safe_mode:
         for name, value in data.items():
-            if len(value) > 20000:
+            if len(value) > MAX_INPUT_FIELD_CHARS:
                 omitted = True
-            data[name] = value[:20000]
+            data[name] = value[:MAX_INPUT_FIELD_CHARS]
     data["omitted"] = omitted
     return data, omitted
