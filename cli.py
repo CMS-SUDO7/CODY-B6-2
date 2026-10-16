@@ -5,6 +5,13 @@ import math
 import re
 
 
+MIN_TEMPERATURE = 0
+MAX_TEMPERATURE = 2
+MIN_OUTPUT_TOKENS = 1
+MAX_OUTPUT_TOKENS = 65536
+MAX_TIMEOUT_SECONDS = 300
+
+
 def parse_args() -> argparse.Namespace:
     """CLI 입력을 해석하고 파라미터 범위를 검증한다."""
     parser = argparse.ArgumentParser(description="Gemini로 Git 변경에서 커밋/PR 초안 생성")
@@ -21,10 +28,12 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if not re.fullmatch(r"gemini-[A-Za-z0-9._-]+", args.model):
         parser.error("--model은 gemini-로 시작하는 모델 이름이어야 합니다.")
-    if not math.isfinite(args.temperature) or not 0 <= args.temperature <= 2:
-        parser.error("--temperature는 0~2로 지정해 주세요.")
-    if not 1 <= args.max_tokens <= 65536:
-        parser.error("--max-tokens는 1~65536으로 지정해 주세요.")
-    if not math.isfinite(args.timeout) or not 0 < args.timeout <= 300:
-        parser.error("--timeout은 0보다 크고 300 이하여야 합니다.")
+    if not math.isfinite(args.temperature) or not (
+        MIN_TEMPERATURE <= args.temperature <= MAX_TEMPERATURE
+    ):
+        parser.error(f"--temperature는 {MIN_TEMPERATURE}~{MAX_TEMPERATURE}로 지정해 주세요.")
+    if not MIN_OUTPUT_TOKENS <= args.max_tokens <= MAX_OUTPUT_TOKENS:
+        parser.error(f"--max-tokens는 {MIN_OUTPUT_TOKENS}~{MAX_OUTPUT_TOKENS}으로 지정해 주세요.")
+    if not math.isfinite(args.timeout) or not 0 < args.timeout <= MAX_TIMEOUT_SECONDS:
+        parser.error(f"--timeout은 0보다 크고 {MAX_TIMEOUT_SECONDS} 이하여야 합니다.")
     return args

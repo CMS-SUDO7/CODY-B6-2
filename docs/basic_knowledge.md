@@ -32,6 +32,8 @@
 
 `" ".join(value.split())`은 공백으로 문자열을 쪼갠 뒤 한 칸으로 다시 합칩니다. 예를 들어 `"a\n  b"`가 `"a b"`가 됩니다. 이 방법으로 제목 한 줄을 만듭니다.
 
+복잡한 조건에는 결과의 뜻을 이름으로 붙입니다. `safety.py`의 `is_numeric_output_budget`는 숫자로 된 출력 예산이라 가리지 않을 값인지, `is_yaml_block_start`는 YAML 블록으로 처리할 시작 형태인지를 나타냅니다. 이 값들은 각 할당을 처리하는 중 필요한 지점에서 계산하며, 인용 값·괄호 값 처리가 YAML 처리보다 먼저 적용됩니다. `diff_block_count`는 고유 파일 수가 아닌 diff 블록 수입니다.
+
 ### f-string과 삼항 표현식
 
 `f"변경 {count}개"`는 변수 값을 문자열에 넣습니다. `limit = MAX_COMMIT_TITLE_CHARS if command == "commit" else MAX_PR_TITLE_CHARS`는 다음과 같습니다. 두 상수의 값은 각각 72와 80입니다.
@@ -45,11 +47,13 @@ else:
 
 `main.py`의 `label` 선택도 같은 문법입니다. `items or [fallback]`은 items가 비었을 때 안내 한 항목을 대신 반환합니다.
 
+CLI 입력 범위는 `MIN_TEMPERATURE`/`MAX_TEMPERATURE`, `MIN_OUTPUT_TOKENS`/`MAX_OUTPUT_TOKENS`, `MAX_TIMEOUT_SECONDS`로 관리합니다. 검증 조건과 오류 안내가 같은 상수를 사용하므로 범위를 바꿀 때 두 곳의 숫자를 따로 수정하지 않습니다. 현재 허용 범위와 기본값은 그대로입니다.
+
 ### 예외와 종료 코드
 
 예외는 정상 처리할 수 없는 상황을 전달하는 방식입니다. `run_git()`은 Git 실패를 `ValueError`로 바꾸고 `main()`이 잡아 안내합니다. `raise ... from error`는 새 오류와 원래 오류의 관계를 남깁니다.
 
-`try`는 실패할 수 있는 작업, `except`는 실패 처리, `finally`는 성공·실패·중간 `return`과 관계없이 실행할 마무리입니다. 이 프로젝트에서는 `finally`가 API 요청 시도 횟수를 출력합니다. CLI 인자 해석은 try 이전이므로 `--help`나 사용법 오류에는 이 로그가 없습니다.
+`try`는 실패할 수 있는 작업, `except`는 실패 처리, `finally`는 성공·실패·중간 `return`과 관계없이 실행할 마무리입니다. 이 프로젝트에서는 `finally`가 `api_request_attempts`에 기록한 API 요청 시도 횟수를 출력합니다. 요청이 실패해도 시도했다면 1이며 성공 횟수나 청구 횟수가 아닙니다. CLI 인자 해석은 try 이전이므로 `--help`나 사용법 오류에는 이 로그가 없습니다.
 
 `sys.exit(main())`은 main의 숫자를 운영체제에 반환합니다. 0은 정상, 1은 실행 오류, 2는 CLI 사용법 오류, 130은 사용자 중단입니다.
 
@@ -159,6 +163,8 @@ Python 딕셔너리는 그대로 HTTP 전송할 수 없으므로 다음 변환�
 `finishReason="STOP"`일 때만 완료로 처리합니다. `MAX_TOKENS`라면 JSON 중간에 끊겼을 수 있으므로 결과를 성공처럼 출력하지 않습니다. `thought=true`인 사고 내용은 최종 초안 텍스트에 합치지 않습니다.
 
 HTTP 오류는 상태 코드와 서버 본문을 함께 읽습니다. `_is_invalid_api_key()`는 `error.details`의 비어 있지 않은 reason 중 `API_KEY_INVALID`가 있는지 우선 확인합니다. 명시적인 reason이 없을 때만 오류 메시지의 특정 접두사로 보조 판단합니다. 따라서 400이나 403이라는 숫자만으로 잘못된 키라고 단정하지 않습니다. 원문으로 원인을 판별한 다음, 오류 본문을 마스킹하고 앞 500자만 안내에 사용합니다. 실패해도 자동 재시도는 없습니다.
+
+상세 오류는 반복문으로 하나씩 읽습니다. 딕셔너리가 아닌 항목은 `continue`로 건너뛰고, `reason`이 비어 있지 않은 문자열인 경우에만 목록에 추가합니다. 여러 검사를 긴 리스트 내포에 몰아넣지 않아 어떤 항목이 제외되는지 순서대로 확인할 수 있습니다.
 
 ### 핵심 3: 프롬프트와 후처리의 책임을 나눈다
 

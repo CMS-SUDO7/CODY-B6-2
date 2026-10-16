@@ -103,7 +103,11 @@ def _mask_assignments(text: str) -> str:
             line_end = len(text)
         value = text[start:line_end].rstrip("\r")
         name = match.group("name").casefold()
-        if name in ("max_tokens", "maxoutputtokens") and re.fullmatch(r"\d+\s*[,)}\]]?\s*", value):
+        is_numeric_output_budget = (
+            name in ("max_tokens", "maxoutputtokens")
+            and re.fullmatch(r"\d+\s*[,)}\]]?\s*", value) is not None
+        )
+        if is_numeric_output_budget:
             continue
         # JSON 값이 다음 줄에 오는 경우도 따옴표 시작 위치를 찾는다.
         quote_start = start
@@ -112,13 +116,17 @@ def _mask_assignments(text: str) -> str:
             quote_start += following.end()
         quote = next((item for item in ('"""', "'''", '"', "'", '\\"', "\\'")
                       if text.startswith(item, quote_start)), "")
+        is_yaml_block_start = (
+            not value.strip()
+            or re.fullmatch(r"[|>][+-]?[1-9]?(?:[ \t]+#.*)?", value) is not None
+        )
         replacement = "[REDACTED]"
         if quote:
             end = _quoted_end(text, quote_start, quote)
             replacement = quote + "[REDACTED]" + quote
         elif quote_start < len(text) and text[quote_start] in "([{":
             end = _compound_end(text, quote_start)
-        elif not value.strip() or re.fullmatch(r"[|>][+-]?[1-9]?(?:[ \t]+#.*)?", value):
+        elif is_yaml_block_start:
             end = _yaml_block_end(text, match.start(), line_end)
             if end == line_end and not value.strip():
                 continue
@@ -170,11 +178,11 @@ def prepare_input(status: str, diff: str, reason: str, test: str,
         test = mask_sensitive(test, api_key)
     if safe_mode:
         lines = []
-        file_count = 0
+        diff_block_count = 0
         for line in diff.splitlines():
             if line.startswith("diff --git "):
-                file_count += 1
-            if file_count > MAX_DIFF_BLOCKS or len(lines) >= MAX_DIFF_LINES:
+                diff_block_count += 1
+            if diff_block_count > MAX_DIFF_BLOCKS or len(lines) >= MAX_DIFF_LINES:
                 omitted = True
                 break
             # 한 줄짜리 매우 큰 변경도 지정한 문자 수로 제한한다.

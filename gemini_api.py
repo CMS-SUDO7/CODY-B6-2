@@ -63,8 +63,13 @@ def _is_invalid_api_key(detail: str) -> bool:
     details = error.get("details", [])
     if not isinstance(details, list):
         details = []
-    reasons = [item["reason"] for item in details
-               if isinstance(item, dict) and isinstance(item.get("reason"), str) and item["reason"]]
+    reasons = []
+    for item in details:
+        if not isinstance(item, dict):
+            continue
+        reason = item.get("reason")
+        if isinstance(reason, str) and reason:
+            reasons.append(reason)
     if reasons:
         return "API_KEY_INVALID" in reasons
     message = error.get("message", "")

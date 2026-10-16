@@ -14,7 +14,7 @@ from safety import mask_sensitive, prepare_input
 def main() -> int:
     """수집 → 마스킹 → 1회 생성 → 형식 보정 → 출력을 수행한다."""
     args = parse_args()
-    calls = 0
+    api_request_attempts = 0
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     try:
         status, diff, count, untracked = collect_changes()
@@ -43,7 +43,7 @@ def main() -> int:
                              "[HINT] PowerShell 설정 예시: Set-Item Env:GEMINI_API_KEY \"발급받은_키\"")
         print(f"[INFO] Gemini API 요청 중: {args.model} "
               f"(temperature={args.temperature}, max_tokens={args.max_tokens})", flush=True)
-        calls = 1
+        api_request_attempts = 1
         draft = generate(prompt, api_key, args.model, args.temperature, args.max_tokens, args.timeout)
         draft["title"] = mask_sensitive(one_line(draft.get("title")), api_key)
         output, notices = format_draft(args.command, draft)
@@ -62,7 +62,7 @@ def main() -> int:
         print("[ERROR] 사용자가 처리를 중단했습니다.", file=sys.stderr)
         return 130
     finally:
-        print(f"[INFO] AI API 호출 횟수: {calls}")
+        print(f"[INFO] AI API 호출 횟수: {api_request_attempts}")
 
 
 if __name__ == "__main__":
