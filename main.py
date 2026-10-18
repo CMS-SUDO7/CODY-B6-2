@@ -33,10 +33,20 @@ def main() -> int:
             print("[WARN] 안전 모드에서 입력 일부를 생략했습니다. 변경 전체를 요약한 결과가 아닙니다.")
         prompt = build_prompt(args.command, data)
         if args.dry_run:
-            print("--- 전송 예정 프롬프트 (전송 안 함) ---\n" + prompt)
-            print("--- 전송 예정 요청 JSON (키 헤더 제외, 전송 안 함) ---\n"
-                  + json.dumps(build_payload(prompt, args.temperature, args.max_tokens),
-                               ensure_ascii=False, indent=2))
+            if args.dry_run_format == "json":
+                print("--- 전송 예정 요청 JSON (키 헤더 제외, 전송 안 함) ---\n"
+                      + json.dumps(build_payload(prompt, args.temperature, args.max_tokens),
+                                   ensure_ascii=False, indent=2))
+            else:
+                print("--- 전송 예정 입력 (전송 안 함) ---")
+                print(f"명령: {args.command} | 모델: {args.model} | "
+                      f"temperature: {args.temperature} | max_tokens: {args.max_tokens}")
+                print(f"안전 모드: {'ON' if args.safe_mode else 'OFF'} | "
+                      f"입력 일부 생략: {'있음' if omitted else '없음'}")
+                for name in ("status", "diff", "reason", "test"):
+                    print(f"\n--- {name} ---")
+                    print(data[name] or "(없음)")
+                print("\n[HINT] 전체 요청 JSON 확인: --dry-run --dry-run-format json")
             return 0
         if not api_key:
             raise ValueError("GEMINI_API_KEY 환경변수가 설정되지 않았습니다.\n"

@@ -24,8 +24,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--test", default="", help="실시한 검증과 결과. 생략하면 미실행으로 처리")
     parser.add_argument("--safe-mode", "-safe-mode", dest="safe_mode", action="store_true", default=True)
     parser.add_argument("--no-safe-mode", dest="safe_mode", action="store_false")
-    parser.add_argument("--dry-run", action="store_true", help="전송 예정 프롬프트와 요청 JSON 확인. API 호출 0회")
+    parser.add_argument("--dry-run", action="store_true", help="전송 예정 입력을 구역별로 확인. API 호출 0회")
+    parser.add_argument("--dry-run-format", choices=["text", "json"], default="text",
+                        help="--dry-run 출력 형식. text: 읽기 쉬운 입력, json: 전체 요청 본문")
     args = parser.parse_args()
+    if args.dry_run_format != "text" and not args.dry_run:
+        parser.error("--dry-run-format json은 --dry-run과 함께 사용해 주세요.")
     if not re.fullmatch(r"gemini-[A-Za-z0-9._-]+", args.model):
         parser.error("--model은 gemini-로 시작하는 모델 이름이어야 합니다.")
     if not math.isfinite(args.temperature) or not (

@@ -158,7 +158,7 @@ Python 딕셔너리는 그대로 HTTP 전송할 수 없으므로 다음 변환�
 
 2번은 서버 응답 봉투를 열고, 3번은 봉투 안의 AI 초안을 읽는 작업입니다. 실제 대응은 `result`와 `draft`입니다. `responseMimeType="application/json"`으로 AI의 JSON 출력을 요청하지만 유효성과 형태를 다시 확인합니다.
 
-`build_payload()`는 `contents`에 프롬프트를, `generationConfig`에 temperature·maxOutputTokens·responseMimeType을 넣습니다. `generate()`와 `--dry-run`이 같은 함수를 사용하므로 전송할 본문과 미리보기 구조가 같습니다. 인증 키는 본문 대신 `x-goog-api-key` HTTP 헤더에 넣으며 dry-run은 그 헤더를 출력하지 않습니다. 변경이 있는 저장소에서 dry-run을 실행하면 프롬프트와 요청 JSON을 보여 주고 API 호출은 0회입니다. 키가 없어도 실행할 수 있습니다.
+`build_payload()`는 `contents`에 프롬프트를, `generationConfig`에 temperature·maxOutputTokens·responseMimeType을 넣습니다. 기본 `--dry-run`은 같은 전송 입력의 status/diff/reason/test를 구역별로 보여 줍니다. diff의 줄바꿈을 그대로 표시하고 같은 내용을 중복 출력하지 않아 마스킹을 확인하기 쉽습니다. 전체 프롬프트가 포함된 요청 JSON은 `--dry-run --dry-run-format json`으로 확인합니다. 이때 `generate()`와 같은 `build_payload()`를 사용합니다. 인증 키는 본문 대신 `x-goog-api-key` HTTP 헤더에 넣으며 dry-run은 그 헤더를 출력하지 않습니다. 두 출력 형식 모두 API 호출은 0회이며 키가 없어도 실행할 수 있습니다.
 
 `finishReason="STOP"`일 때만 완료로 처리합니다. `MAX_TOKENS`라면 JSON 중간에 끊겼을 수 있으므로 결과를 성공처럼 출력하지 않습니다. `thought=true`인 사고 내용은 최종 초안 텍스트에 합치지 않습니다.
 

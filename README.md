@@ -61,7 +61,10 @@ git status
 python main.py commit --dry-run
 ```
 
-`--dry-run`은 프롬프트와 요청 JSON을 출력합니다. API를 호출하지 않으며 키도 필요 없습니다.  
+`--dry-run`은 전송 예정 status, diff, 변경 이유, 검증 설명을 구역별로 출력합니다. diff의 줄바꿈을 그대로 보여 주므로 마스킹된 값을 확인하기 쉽습니다. API를 호출하지 않으며 키도 필요 없습니다.
+
+전체 프롬프트가 포함된 요청 JSON은 `python main.py commit --dry-run --dry-run-format json`으로 확인합니다. 두 형식 모두 같은 안전 모드와 입력 제한을 적용합니다.
+
 새 파일은 `git diff`에 내용이 나오지 않으므로, 파일을 검토한 뒤 `git add 파일명`으로 스테이징합니다.  
 
 ### 3. 키 설정과 초안 생성  
@@ -121,7 +124,8 @@ python main.py pr --dry-run --reason "변경 이유" --test "검증 결과"
 | `--test` | 빈 문자열 | 실행한 테스트와 결과. 생략하면 테스트 미실행으로 처리 |  
 | `--safe-mode` | 켜짐 | 전송 전 민감값 마스킹과 입력 크기 제한 |  
 | `--no-safe-mode` | 미사용 | 마스킹과 입력 제한 해제. 원문이 전송되므로 샘플 자료에서만 사용 |  
-| `--dry-run` | 꺼짐 | 프롬프트와 요청 JSON만 출력, API 호출 0회 |  
+| `--dry-run` | 꺼짐 | 전송 예정 입력과 설정을 구역별로 출력, API 호출 0회 |
+| `--dry-run-format` | `text` | `--dry-run` 출력 형식. `json`은 전체 프롬프트를 포함한 요청 JSON 출력 |
 
 `-model`, `-temperature`, `-max-tokens`, `-safe-mode` 표기도 지원합니다.  
 모델을 옵션으로 받으므로 접근 권한이나 모델 버전이 바뀌어도 소스를 수정할 필요가 없습니다.  
@@ -244,7 +248,7 @@ Git 수집과 API 호출을 나누면 Git 저장소 문제와 네트워크 문�
 
 미추적·바이너리 파일은 내용을 확인할 수 없다고 프롬프트에 명시합니다. reason과 test가 비어 있으면 배경·검증 결과를 만들지 않도록 요청합니다.  
 `build_payload()`는 자료를 `contents`에 넣고 옵션을 `generationConfig`에 연결합니다.  
-인증 키는 HTTP 헤더에만 넣습니다. dry-run은 같은 요청 본문을 출력하지만 전송하지 않습니다.  
+인증 키는 HTTP 헤더에만 넣습니다. dry-run은 기본으로 전송 입력을 구역별로 보여 주며, `--dry-run-format json`에서는 같은 요청 본문을 출력합니다. 두 형식 모두 전송하지 않습니다.
 응답의 텍스트를 JSON으로 읽은 뒤 `format_draft()`에 전달합니다.  
 
 ### 후처리와 재실행 기준  
