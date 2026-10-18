@@ -6,6 +6,7 @@ __pycache__/
 !.env.example
 *.pem
 *.key
+.DS_Store
 
 # Keep local verification notes out of commits and GitHub.
 verification.md
